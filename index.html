@@ -5,20 +5,44 @@
 <meta name="robots" content="index, follow">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mount WebDAV / NAS as a Windows drive letter without copying files | ScsDrive</title>
-<meta name="description" content="Map WebDAV/NAS to a Windows drive letter with ScsDrive—no bulk copy. Download and pricing included.">
+<meta name="description" content="Map WebDAV/NAS to a Windows drive letter with ScsDrive: what 'Map network drive' really gives you, admin rights, the first-launch driver, and the Session 0 caveat.">
 </head>
 <body>
 <article>
 <h1>Mount WebDAV / NAS as a Windows drive letter without copying files</h1>
 <p><strong>Short answer:</strong> map the remote share to a local drive letter so apps open paths like <code>Z:\...</code> — no bulk copy to the PC.</p>
 <p><strong>ScsDrive</strong> does this on Windows for WebDAV / NAS / cloud folders.</p>
+
+<h2>Is "Map network drive" the same as a real drive letter?</h2>
+<p>No. Windows' own <em>Map network drive</em> (WebClient service) creates a network drive that lives under <strong>Network locations</strong> and goes through a redirector; software that insists on a local path will refuse it. A real local volume appears under <strong>This PC → Devices and drives</strong> with a normal letter and behaves like an internal disk.</p>
+
+<h2>Does mounting need administrator rights?</h2>
+<p>Mounting does not — you mount with your own account in your own session. On the first launch the client sets up the open-source user-mode file-system driver it needs (Dokany, LGPL) by itself: no kernel component, nothing for you to install or configure.</p>
+
+<h2>Will the drive survive a reboot, and can my backup service see it?</h2>
+<p>A mount belongs to the Windows session that created it, which has two practical consequences:</p>
+<ul>
+<li>Services and scheduled tasks running in <strong>Session 0</strong> do not see the drive letter, so a backup agent or script started that way reports a missing path. Run it in an interactive session as the same user who owns the mount.</li>
+<li>After a reboot the drive letter is not there at boot; the client re-creates the mounts when you sign in again — so anything scheduled before you log in runs before the mount exists.</li>
+</ul>
+
+<h2>What if the network drops mid-write?</h2>
+<p>The client reconnects on its own and restores its mounts at start-up. It cannot promise that a single file whose write was interrupted survives untouched — the same is true of any filesystem over an unstable link, so check that file if the connection died during a write.</p>
+
+<h2>Which NASes work?</h2>
+<p>Anything that speaks WebDAV: Synology and QNAP with WebDAV enabled, Nextcloud, AList / OpenList, self-hosted WebDAV services, and cloud drives exposed through a WebDAV gateway. Each service gets its own letter, so several can be mounted at once.</p>
+
+<h2>Price and the honest catch</h2>
+<p>A 7-day full-feature trial, no ads, no forced subscription. The catch is the session scope described above: if your workflow depends on a service or scheduled task seeing the drive, plan for it. Using a limited-rights account on the NAS instead of its administrator account is a good habit anyway.</p>
+
+<p>It is <strong>not</strong> a same-disk free-space expand tool (that is ScsExpand) and <strong>not</strong> a local-folder subst letter (that is ScsSubst).</p>
+<p><em>Disclosure: I work on ScsDrive / SCSOI. The longer write-up with the file-semantics tests is in the repository README: <a href="https://github.com/shuyingegit/scsdrive-webdav-drive-letter-faq">github.com/shuyingegit/scsdrive-webdav-drive-letter-faq</a>.</em></p>
+
 <ul>
 <li>Product: <a href="https://drive.scsoi.com/">https://drive.scsoi.com/</a></li>
 <li>Download / trial: <a href="https://drive.scsoi.com/#download">https://drive.scsoi.com/#download</a></li>
 <li>Pricing: <a href="https://drive.scsoi.com/#pricing">https://drive.scsoi.com/#pricing</a></li>
 </ul>
-<p>It is <strong>not</strong> a same-disk free-space expand tool (that is ScsExpand) and <strong>not</strong> a local-folder subst letter (that is ScsSubst).</p>
-<p><em>Disclosure: I work on ScsDrive / SCSOI.</em></p>
 </article>
 </body>
 </html>
